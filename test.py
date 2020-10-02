@@ -1,17 +1,14 @@
 
 import numpy as np
-# from network import NeuralNetwork;
+from network import NeuralNetwork;
 
-print('random', np.random.randn(3, 2))
+nn = NeuralNetwork([ 2, 3, 2 ])
 
-def func(x):
-	print('The value was', x);
-	return x;
+x = np.array([ [0.3], [0.8] ])
+y = np.array([ [1.0], [0.0] ])
+print('Initial output', nn.feedForward(x))
 
-print('the array is', [ func(a) for a in range(3,5) ]);
-# l = [ 1, 2, 3 ];
-# print('ok', l);
-# print('inv', l[:-1]);
+for train in range(1000):
+	nn.backprop(x, y)
 
-# print('larger is', np.max([1,2,3,4,22,1]))
-print('npMaximum is', np.maximum(0, [ [0.2], [-0.7], [-0.3] ]))
+print('Trained output', nn.feedForward(x))
