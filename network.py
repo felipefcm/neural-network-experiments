@@ -22,7 +22,6 @@ class NeuralNetwork:
 	def backprop(self, x, expected):
 		
 		weightGradients = [ np.zeros(w.shape) for w in self.weights ]
-
 		zs = []
 		activation = np.array(x)
 		activations = [ np.array(x) ]
@@ -47,6 +46,12 @@ class NeuralNetwork:
 			)
 
 		return weightGradients
+
+	def adjustWeights(self, lr, weightGradients):
+		self.weights = [
+			w - lr * nw 
+			for w, nw in zip(self.weights, weightGradients)
+		]
 
 	def costDerivative(self, output, expected):
 		return output - expected

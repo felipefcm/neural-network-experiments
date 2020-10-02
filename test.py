@@ -9,6 +9,7 @@ y = np.array([ [1.0], [0.0] ])
 print('Initial output', nn.feedForward(x))
 
 for train in range(1000):
-	nn.backprop(x, y)
+	weightGradients = nn.backprop(x, y)
+	nn.adjustWeights(0.01, weightGradients)
 
 print('Trained output', nn.feedForward(x))
