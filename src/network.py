@@ -1,117 +1,115 @@
-
 import random
 import numpy as np
 
+
 class NeuralNetwork:
 
-	def __init__(self, neuronsPerLayer):
-		
-		self.numLayers = len(neuronsPerLayer)
-		self.neuronsPerLayer = neuronsPerLayer
-		
-		self.weights = [
-			np.random.randn(current, last)
-			for current, last in zip(neuronsPerLayer[1:], neuronsPerLayer[:-1])
-		]
+    def __init__(self, neurons_per_layer):
+        self.num_layers = len(neurons_per_layer)
+        self.neurons_per_layer = neurons_per_layer
 
-		self.biases = [ np.random.randn(y, 1) for y in neuronsPerLayer[1:] ]
-		
-	def feedForward(self, x):
-		
-		for b, w in zip(self.biases, self.weights):
-			x = relu(np.dot(w, x) + b)
-		
-		return x
+        self.weights = [
+            np.random.randn(current, last) for current, last in
+            zip(neurons_per_layer[1:], neurons_per_layer[:-1])
+        ]
 
-	def sgd(self, trainingData, epochs, miniBatchSize, lr, testData = None):
+        self.biases = [np.random.randn(y, 1) for y in neurons_per_layer[1:]]
 
-		n = len(trainingData)
+    def feed_forward(self, x):
+        for w, b in zip(self.weights, self.biases):
+            x = relu(np.dot(w, x) + b)
 
-		for e in range(epochs):
-			
-			random.shuffle(trainingData)
+        return x
 
-			miniBatches = [
-				trainingData[k : k + miniBatchSize]
-				for k in range(0, n, miniBatchSize)
-			]
+    def sgd(self, training_data, epochs, mini_batch_size, lr, test_data=None):
+        n = len(training_data)
 
-			for miniBatch in miniBatches:
-				self.adjustForMiniBatch(miniBatch, lr)
+        for e in range(epochs):
+            random.shuffle(training_data)
 
-	def backprop(self, x, expected):
-		
-		weightGradients = [ np.zeros(w.shape) for w in self.weights ]
-		biasGradients = [ np.zeros(b.shape) for b in self.biases ]
+            miniBatches = [
+                training_data[k: k + mini_batch_size]
+                for k in range(0, n, mini_batch_size)
+            ]
 
-		zs = []
-		activation = np.array(x)
-		activations = [ np.array(x) ]
+            for miniBatch in miniBatches:
+                self.adjust_mini_batch(miniBatch, lr)
 
-		for b, w in zip(self.biases, self.weights):
-			z = np.dot(w, activation) + b
-			zs.append(z)
-			activation = relu(z)
-			activations.append(activation)
+    def backprop(self, x, expected):
+        weight_gradients = [np.zeros(w.shape) for w in self.weights]
+        bias_gradients = [np.zeros(b.shape) for b in self.biases]
 
-		delta = self.costDerivative(activations[-1], expected) * \
-			reluDerivative(zs[-1])
+        zs = []
+        activation = np.array(x)
+        activations = [np.array(x)]
 
-		weightGradients[-1] = np.dot(delta, activations[-2].transpose())
-		biasGradients[-1] = delta
+        for w, b in zip(self.weights, self.biases):
+            z = np.dot(w, activation) + b
+            zs.append(z)
+            activation = relu(z)
+            activations.append(activation)
 
-		for layer in range(2, self.numLayers):
-			
-			z = zs[-layer]
-			d = reluDerivative(z)
-			delta = np.dot(self.weights[-layer + 1].transpose(), delta) * d
-			
-			weightGradients[-layer] = np.dot(
-				delta, activations[-layer - 1].transpose()
-			)
+        delta = self.cost_derivative(activations[-1], expected) * \
+            relu_derivative(zs[-1])
 
-			biasGradients[-layer] = delta
+        weight_gradients[-1] = np.dot(delta, activations[-2].transpose())
+        bias_gradients[-1] = delta
 
-		return (weightGradients, biasGradients)
+        for layer in range(2, self.num_layers):
+            z = zs[-layer]
+            d = relu_derivative(z)
+            delta = np.dot(self.weights[-layer + 1].transpose(), delta) * d
 
-	def adjustSingle(self, lr, weightGradients, biasGradients):
-		
-		self.weights = [
-			w - lr * nw 
-			for w, nw in zip(self.weights, weightGradients)
-		]
+            weight_gradients[-layer] = np.dot(
+                delta, activations[-layer - 1].transpose()
+            )
 
-		self.biases = [
-			b - lr * nb
-			for b, nb in zip(self.weights, biasGradients)
-		]
+            bias_gradients[-layer] = delta
 
-	def adjustForMiniBatch(self, miniBatch, lr):
+        return (weight_gradients, bias_gradients)
 
-		weightGradients = [ np.zero(w.shape) for w in self.weights ]
-		biasGradients = [ np.zero(b.shape) for b in self.biases ]
+    def adjust_single(self, lr, weight_gradients, bias_gradients):
+        self.weights = [
+            w - lr * nw for w, nw in
+            zip(self.weights, weight_gradients)
+        ]
 
-		for x, expected in miniBatch:
-			inputWeightGradients, inputBiasGradients = self.backprop(x, expected)
-			weightGradients = [ nw + dnw for nw, dnw in zip(weightGradients, inputWeightGradients) ]
-			biasGradients = [ nb + dnb for nb, dnb in zip(biasGradients, inputBiasGradients) ]
+        self.biases = [
+            b - lr * nb for b, nb in
+            zip(self.biases, bias_gradients)
+        ]
 
-		self.weights = [
-			w - lr * nw / len(miniBatch)
-			for w, nw in zip(self.weights, weightGradients)
-		]
+    def adjust_mini_batch(self, mini_batch, lr):
+        weight_gradients = [np.zero(w.shape) for w in self.weights]
+        bias_gradients = [np.zero(b.shape) for b in self.biases]
 
-		self.biases = [
-			b - lr * nb / len(miniBatch)
-			for b, nb in zip(self.biases, biasGradients)
-		]
+        for x, expected in mini_batch:
+            input_weight_gradients, input_bias_gradients = self.backprop(
+                x, expected)
 
-	def costDerivative(self, output, expected):
-		return output - expected
+            weight_gradients = [nw + dnw for nw,
+                                dnw in zip(weight_gradients, input_weight_gradients)]
+            bias_gradients = [nb + dnb for nb,
+                              dnb in zip(bias_gradients, input_bias_gradients)]
+
+        self.weights = [
+            w - lr * nw / len(mini_batch)
+            for w, nw in zip(self.weights, weight_gradients)
+        ]
+
+        self.biases = [
+            b - lr * nb / len(mini_batch)
+            for b, nb in zip(self.biases, bias_gradients)
+        ]
+
+    def cost_derivative(self, output, expected):
+        return output - expected
+
 
 def relu(x):
     return np.maximum(0, x)
 
-def reluDerivative(x):
-	d = lambda i : 0 if i <= 0.0 else 1.0
-	return np.array([ [d(a)] for a in x ])
+
+def relu_derivative(x):
+    def d(i): return 0 if i <= 0.0 else 1.0
+    return np.array([[d(a)] for a in x])
