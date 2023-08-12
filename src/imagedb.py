@@ -23,12 +23,9 @@ def load_images(file):
     images = []
 
     for i in range(num_images):
-        image = []
-
-        for p in range(num_rows * num_cols):
-            image.append(bytes_to_int(file.read(1)))
-
-        images.append(image)
+        images.append([
+            bytes_to_int(file.read(1)) for p in range(num_rows * num_cols)
+        ])
 
     return images
 
@@ -40,13 +37,38 @@ def load_labels(file):
 
     numLabels = bytes_to_int(file.read(4))
 
-    labels = []
-
-    for l in range(numLabels):
-        labels.append(bytes_to_int(file.read(1)))
+    labels = [
+        bytes_to_int(file.read(1)) for l in range(numLabels)
+    ]
 
     return labels
 
 
 def bytes_to_int(bytes):
     return int.from_bytes(bytes, byteorder='big')
+
+
+def convert_label_to_output(label: int):
+    output = np.zeros((10, 1))
+    output[label][0] = 1.0
+
+    return output
+
+
+def convert_image_to_input(image: list):
+    return np.array([
+        [p / 255] for p in image
+    ])
+
+
+def convert_output_to_label(output: np.ndarray[np.float64]):
+    values = np.array([a[0] for a in output])
+
+    idx = 0
+    max = -1.0
+    for i, val in enumerate(values):
+        if val > max:
+            idx = i
+            max = val
+
+    return idx

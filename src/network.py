@@ -16,6 +16,8 @@ class NeuralNetwork:
         self.biases = [np.random.randn(y, 1) for y in neurons_per_layer[1:]]
 
     def feed_forward(self, x):
+        self._assert_input_shape(x)
+
         for w, b in zip(self.weights, self.biases):
             x = relu(np.dot(w, x) + b)
 
@@ -36,6 +38,9 @@ class NeuralNetwork:
                 self.adjust_mini_batch(miniBatch, lr)
 
     def backprop(self, x, expected):
+        self._assert_input_shape(x)
+        self._assert_output_shape(expected)
+
         weight_gradients = [np.zeros(w.shape) for w in self.weights]
         bias_gradients = [np.zeros(b.shape) for b in self.biases]
 
@@ -80,8 +85,10 @@ class NeuralNetwork:
         ]
 
     def adjust_mini_batch(self, mini_batch, lr):
-        weight_gradients = [np.zero(w.shape) for w in self.weights]
-        bias_gradients = [np.zero(b.shape) for b in self.biases]
+        self._assert_input_shape(mini_batch[0][0])
+
+        weight_gradients = [np.zeros(w.shape) for w in self.weights]
+        bias_gradients = [np.zeros(b.shape) for b in self.biases]
 
         for x, expected in mini_batch:
             input_weight_gradients, input_bias_gradients = self.backprop(
@@ -105,11 +112,23 @@ class NeuralNetwork:
     def cost_derivative(self, output, expected):
         return output - expected
 
+    def _assert_input_shape(self, input):
+        if len(input) != self.weights[0].shape[1]:
+            raise Exception(
+                f'incorrect input shape {len(input)} (expected {self.weights[0].shape[1]})'
+            )
+
+    def _assert_output_shape(self, output):
+        if len(output) != self.weights[-1].shape[0]:
+            raise Exception(
+                f'incorrect ouput shape {len(output)} (expected {self.weights[-1].shape[0]})'
+            )
+
 
 def relu(x):
     return np.maximum(0, x)
 
 
 def relu_derivative(x):
-    def d(i): return 0 if i <= 0.0 else 1.0
-    return np.array([[d(a)] for a in x])
+    return np.minimum(1.0, np.maximum(0, x))
+    # return np.array([[d(a)] for a in x])
