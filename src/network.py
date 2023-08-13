@@ -9,7 +9,7 @@ class NeuralNetwork:
         self.neurons_per_layer = neurons_per_layer
 
         self.weights = [
-            np.random.randn(current, last) for current, last in
+            np.random.randn(current, previous) for current, previous in
             zip(neurons_per_layer[1:], neurons_per_layer[:-1])
         ]
 
@@ -54,8 +54,8 @@ class NeuralNetwork:
             activation = relu(z)
             activations.append(activation)
 
-        delta = self.cost_derivative(activations[-1], expected) * \
-            relu_derivative(zs[-1])
+        delta = self.cost_derivative(
+            activations[-1], expected) * relu_derivative(zs[-1])
 
         weight_gradients[-1] = np.dot(delta, activations[-2].transpose())
         bias_gradients[-1] = delta
@@ -86,6 +86,7 @@ class NeuralNetwork:
 
     def adjust_mini_batch(self, mini_batch, lr):
         self._assert_input_shape(mini_batch[0][0])
+        self._assert_output_shape(mini_batch[0][1])
 
         weight_gradients = [np.zeros(w.shape) for w in self.weights]
         bias_gradients = [np.zeros(b.shape) for b in self.biases]
@@ -109,19 +110,25 @@ class NeuralNetwork:
             for b, nb in zip(self.biases, bias_gradients)
         ]
 
+        return (
+            weight_gradients,
+            bias_gradients
+        )
+
     def cost_derivative(self, output, expected):
+        # no need to multiply this for 2
         return output - expected
 
     def _assert_input_shape(self, input):
-        if len(input) != self.weights[0].shape[1]:
+        if input.shape != (self.neurons_per_layer[0], 1):
             raise Exception(
-                f'incorrect input shape {len(input)} (expected {self.weights[0].shape[1]})'
+                f'incorrect input shape {input.shape} (expected ({self.neurons_per_layer[0]},1))'
             )
 
     def _assert_output_shape(self, output):
-        if len(output) != self.weights[-1].shape[0]:
+        if output.shape != (self.neurons_per_layer[-1], 1):
             raise Exception(
-                f'incorrect ouput shape {len(output)} (expected {self.weights[-1].shape[0]})'
+                f'incorrect ouput shape {output.shape} (expected ({self.neurons_per_layer[-1]},1))'
             )
 
 
@@ -130,5 +137,4 @@ def relu(x):
 
 
 def relu_derivative(x):
-    return np.minimum(1.0, np.maximum(0, x))
-    # return np.array([[d(a)] for a in x])
+    return np.ceil(np.minimum(1.0, np.maximum(0, x)))
