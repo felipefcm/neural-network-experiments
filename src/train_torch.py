@@ -5,6 +5,7 @@ import random
 import timer
 import torch
 
+from torch.utils.data import TensorDataset, DataLoader
 from networktorch import NeuralNetworkTorch
 import imagedb
 
@@ -34,38 +35,22 @@ tm.stop()
 
 tm.start('training data preparation')
 
-input_images = torch.tensor(train_images, dtype=torch.float32, device='cuda')
+input_images = torch.tensor(train_images, dtype=torch.float32)
 
 expected_labels = torch.tensor([
     convert_label_to_output(label) for label in train_labels
-], device='cuda')
+])
+
+dataset = TensorDataset(input_images, expected_labels)
 
 tm.stop()
 print(f'{len(train_images)} images, {len(train_labels)} labels')
 
-
 nn = NeuralNetworkTorch().to('cuda')
-
-for name, param in nn.named_parameters():
-    print(name, '==>', param.size())
-
 optimiser = torch.optim.SGD(nn.parameters(), lr=0.1)
 
-
-def evaluate(inputs, expecteds):
-    correct = 0
-
-    results = nn(inputs)
-
-    for i, result in enumerate(results):
-        result_label = convert_output_to_label(result)
-        expected_label = convert_output_to_label(expecteds[i])
-
-        if expected_label == result_label:
-            correct += 1
-
-    return correct
-
+# for name, param in nn.named_parameters():
+#     print(name, '==>', param.size())
 
 wgs = []
 bgs = []
@@ -77,31 +62,55 @@ num_tests = 30000
 
 num_batches = math.ceil(len(train_images) / batch_size)
 
-for epoch in range(epochs):
-    for batch in range(num_batches):
-        images = input_images[batch:batch + batch_size]
-        expecteds = expected_labels[batch:batch + batch_size]
+training_loader = DataLoader(
+    dataset=dataset,
+    batch_size=batch_size,
+    shuffle=True
+)
 
-        output = nn(images)
-        loss = torch.nn.functional.mse_loss(output, expecteds)
-        nn.zero_grad()
+validation_loader = DataLoader(
+    dataset=dataset,
+    batch_size=batch_size,
+)
+
+tm.start('training')
+for epoch in range(epochs):
+    nn.train()
+    for images_batch, expecteds_batch in training_loader:
+        images_batch = images_batch.to('cuda')
+        expecteds_batch = expecteds_batch.to('cuda')
+
+        output = nn(images_batch)
+        loss = torch.nn.functional.mse_loss(output, expecteds_batch)
+
         loss.backward()
         optimiser.step()
+        nn.zero_grad()
 
-    partial_test = num_tests
-    correct = evaluate(input_images[:partial_test],
-                       expected_labels[:partial_test])
+    nn.eval()
+    with torch.no_grad():
+        for images_batch, expecteds_batch in validation_loader:
+            images_batch = images_batch.to('cuda')
+            expecteds_batch = expecteds_batch.to('cuda')
 
-    progress.append(int(100 * correct / num_tests))
-    print(f'Finished epoch #{epoch}: {correct}/{partial_test}')
+            output = nn(images_batch)
+            max_indices = output.argmax(dim=1)
+            expected_output = torch.nn.functional.one_hot(
+                max_indices,
+                num_classes=10
+            ).to(torch.float)
 
+    # progress.append(int(100 * correct / num_tests))
+    # print(f'Finished epoch #{epoch}: {correct}/{partial_test}')
+
+tm.stop()
 # -----------------------
 
-nn.eval()
-tm.start('evaluation')
-correct = evaluate(input_images[:num_tests], expected_labels[:num_tests])
-tm.stop()
-print(f'Error rate: {100 * ((num_tests - correct) / num_tests)}%')
-print(f'Success rate: {100 * (correct / num_tests)}%')
+# nn.eval()
+# tm.start('evaluation')
+# correct = evaluate(input_images[:num_tests], expected_labels[:num_tests])
+# tm.stop()
+# print(f'Error rate: {100 * ((num_tests - correct) / num_tests)}%')
+# print(f'Success rate: {100 * (correct / num_tests)}%')
 
-graph.draw_cool_graphs(wgs, bgs, epochs, progress)
+# graph.draw_cool_graphs(wgs, bgs, epochs, progress)
