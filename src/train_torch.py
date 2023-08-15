@@ -72,12 +72,12 @@ for epoch in range(epochs):
             output = nn(images_batch)
 
             max_indices = output.argmax(dim=1)
-            expected_output = torch.nn.functional.one_hot(
+            output_onehot = torch.nn.functional.one_hot(
                 max_indices,
                 num_classes=10
             ).to(torch.float)
 
-            correct = (expected_output == expecteds_batch).all(dim=1)
+            correct = (output_onehot == expecteds_batch).all(dim=1)
             num_correct += correct.count_nonzero().item()
 
     tm.stop()
