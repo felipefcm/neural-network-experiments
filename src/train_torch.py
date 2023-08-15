@@ -26,10 +26,11 @@ print(f'{len(train_images)} images, {len(train_labels)} labels')
 
 nn = NeuralNetworkTorch().to('cuda')
 optimiser = torch.optim.SGD(nn.parameters(), lr=0.1)
+lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimiser, gamma=0.9)
 
 progress = []
 
-epochs = 5
+epochs = 10
 batch_size = 20
 
 dataset = TensorDataset(input_images, expected_labels)
@@ -58,6 +59,8 @@ for epoch in range(epochs):
         loss.backward()
         optimiser.step()
         nn.zero_grad()
+
+    lr_scheduler.step()
 
     tm.stop()
 
