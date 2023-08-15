@@ -1,7 +1,7 @@
 import numpy as np
 from network import NeuralNetwork
 import graph
-
+import math
 
 nn = NeuralNetwork([1, 4, 4, 1])
 
@@ -10,11 +10,12 @@ print('Initial output', nn.feed_forward(x))
 
 wgs = []
 bgs = []
+progress = []
 
-num_train = 800
+epochs = 50
 per_batch = 50
 
-for t in range(num_train):
+for e in range(epochs):
     train_inputs = [
         np.array([np.random.rand(1)]) for i in range(per_batch)
     ]
@@ -29,6 +30,26 @@ for t in range(num_train):
     wgs.append(graph.sum_delta_gradients(wg))
     bgs.append(graph.sum_delta_gradients(bg))
 
+    correct = 0
+    test_inputs = [
+        np.array([np.random.rand(1)]) for i in range(per_batch)
+    ]
+
+    test_expected = [
+        np.array([test_inputs[i][0] * 2]) for i in range(per_batch)
+    ]
+
+    test_batch = list(zip(train_inputs, train_expected))
+    for inp, out in test_batch:
+        result = nn.feed_forward(inp)
+        expected = out[0][0]
+        got = result[0][0]
+
+        if abs(expected - got) < 0.001:
+            correct += 1
+
+    progress.append(correct)
+
 
 # num_single = 20000
 # for t in range(num_single):
@@ -42,4 +63,4 @@ for t in range(num_train):
 #     nn.adjust_single(0.01, wg, bg)
 
 print('Trained output', nn.feed_forward(x))
-graph.draw_gradients_sum(wgs, bgs)
+graph.draw_cool_graphs(wgs, bgs, epochs, progress)

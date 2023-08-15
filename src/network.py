@@ -19,23 +19,9 @@ class NeuralNetwork:
         self._assert_input_shape(x)
 
         for w, b in zip(self.weights, self.biases):
-            x = relu(np.dot(w, x) + b)
+            x = activation_fn(np.dot(w, x) + b)
 
         return x
-
-    def sgd(self, training_data, epochs, mini_batch_size, lr, test_data=None):
-        n = len(training_data)
-
-        for e in range(epochs):
-            random.shuffle(training_data)
-
-            miniBatches = [
-                training_data[k: k + mini_batch_size]
-                for k in range(0, n, mini_batch_size)
-            ]
-
-            for miniBatch in miniBatches:
-                self.adjust_mini_batch(miniBatch, lr)
 
     def backprop(self, x, expected):
         self._assert_input_shape(x)
@@ -51,18 +37,18 @@ class NeuralNetwork:
         for w, b in zip(self.weights, self.biases):
             z = np.dot(w, activation) + b
             zs.append(z)
-            activation = relu(z)
+            activation = activation_fn(z)
             activations.append(activation)
 
         delta = self.cost_derivative(
-            activations[-1], expected) * relu_derivative(zs[-1])
+            activations[-1], expected) * activation_derivative(zs[-1])
 
         weight_gradients[-1] = np.dot(delta, activations[-2].transpose())
         bias_gradients[-1] = delta
 
         for layer in range(2, self.num_layers):
             z = zs[-layer]
-            d = relu_derivative(z)
+            d = activation_derivative(z)
             delta = np.dot(self.weights[-layer + 1].transpose(), delta) * d
 
             weight_gradients[-layer] = np.dot(
@@ -132,9 +118,11 @@ class NeuralNetwork:
             )
 
 
-def relu(x):
-    return np.maximum(0, x)
+def activation_fn(x):
+    return 1.0 / (1.0 + np.exp(-x))
+    # return np.maximum(0, x)
 
 
-def relu_derivative(x):
-    return np.ceil(np.minimum(1.0, np.maximum(0, x)))
+def activation_derivative(x):
+    return activation_fn(x) * (1 - activation_fn(x))
+    # return np.ceil(np.minimum(1.0, np.maximum(0, x)))

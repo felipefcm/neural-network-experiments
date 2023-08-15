@@ -56,16 +56,14 @@ def convert_label_to_output(label: int):
 
 
 def convert_image_to_input(image: list):
-    return np.array([
-        [p / 255] for p in image
-    ])
+    return np.reshape(image, (784, 1))
 
 
 def convert_output_to_label(output: np.ndarray[np.float64]):
-    values = np.array([a[0] for a in output])
+    values = np.reshape(output, (10,))
 
     idx = 0
-    max = -1.0
+    max = -100.0
     for i, val in enumerate(values):
         if val > max:
             idx = i
