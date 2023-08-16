@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 
 
@@ -9,10 +8,12 @@ class NeuralNetworkTorch(nn.Module):
         self.stack = nn.Sequential(
             nn.Linear(784, 64),
             nn.Sigmoid(),
-            # nn.ReLU(),
-            nn.Linear(64, 10),
+
+            nn.Linear(64, 16),
+            nn.Sigmoid(),
+
+            nn.Linear(16, 10),
             nn.Sigmoid()
-            # nn.ReLU(),
         )
 
     def forward(self, x):

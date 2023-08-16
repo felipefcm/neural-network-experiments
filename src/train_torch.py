@@ -14,7 +14,7 @@ tm.stop()
 
 tm.start('training data preparation')
 
-input_images = torch.tensor(train_images, dtype=torch.float32)
+input_images = torch.tensor(train_images, dtype=torch.float)
 
 expected_labels = torch.nn.functional.one_hot(
     torch.tensor(train_labels),
@@ -30,8 +30,8 @@ lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimiser, gamma=0.9)
 
 progress = []
 
-epochs = 10
-batch_size = 20
+epochs = 15
+batch_size = 10
 
 dataset = TensorDataset(input_images, expected_labels)
 
