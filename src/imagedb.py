@@ -11,7 +11,7 @@ def load_training():
     return images, labels
 
 
-def load_images(file):
+def load_images(file, num=60000):
     magic = bytes_to_int(file.read(4))
     if (magic != 2051):
         raise RuntimeError('Wrong file for images')
@@ -22,7 +22,7 @@ def load_images(file):
 
     images = []
 
-    for i in range(num_images):
+    for i in range(min(num_images, num)):
         images.append([
             bytes_to_int(file.read(1)) for p in range(num_rows * num_cols)
         ])
@@ -30,15 +30,15 @@ def load_images(file):
     return images
 
 
-def load_labels(file):
+def load_labels(file, num=60000):
     magic = bytes_to_int(file.read(4))
     if (magic != 2049):
         raise RuntimeError('Wrong file for labels')
 
-    numLabels = bytes_to_int(file.read(4))
+    num_labels = bytes_to_int(file.read(4))
 
     labels = [
-        bytes_to_int(file.read(1)) for l in range(numLabels)
+        bytes_to_int(file.read(1)) for l in range(min(num_labels, num))
     ]
 
     return labels
