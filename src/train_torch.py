@@ -3,37 +3,43 @@ import timer
 import torch
 
 from torch.utils.data import TensorDataset, DataLoader
-from networktorch import NeuralNetworkTorch
+from networktorch import NeuralNetworkTorch, ConvNeuralNetworkTorch
 import imagedb
+from mnistdataset import MNISTDataset
 
 tm = timer.Timer()
 
 tm.start('training data loading')
-train_images, train_labels = imagedb.load_training()
+
+# dataset = MNISTDataset(
+#     './digits-train-images-idx3-ubyte',
+#     './digits-train-labels-idx1-ubyte',
+#     # num=100
+# )
+dataset = MNISTDataset(
+    './fashion-train-images-idx3-ubyte',
+    './fashion-train-labels-idx1-ubyte',
+    # num=100
+)
+# dataset = MNISTDataset(
+#     './kmnist-train-images-idx3-ubyte',
+#     './kmnist-train-labels-idx1-ubyte',
+#     # num=100
+# )
+
 tm.stop()
 
-tm.start('training data preparation')
+# nn = NeuralNetworkTorch().to('cuda')
+nn = ConvNeuralNetworkTorch().to('cuda')
 
-input_images = torch.tensor(train_images, dtype=torch.float)
-
-expected_labels = torch.nn.functional.one_hot(
-    torch.tensor(train_labels),
-    num_classes=10
-).float()
-
-tm.stop()
-print(f'{len(train_images)} images, {len(train_labels)} labels')
-
-nn = NeuralNetworkTorch().to('cuda')
-optimiser = torch.optim.SGD(nn.parameters(), lr=0.1)
-lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimiser, gamma=0.9)
+# optimiser = torch.optim.SGD(nn.parameters(), lr=0.2)
+optimiser = torch.optim.Adam(nn.parameters(), lr=0.001)
+# lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimiser, gamma=0.9)
 
 progress = []
 
 epochs = 15
 batch_size = 10
-
-dataset = TensorDataset(input_images, expected_labels)
 
 training_loader = DataLoader(
     dataset=dataset,
@@ -60,7 +66,7 @@ for epoch in range(epochs):
         optimiser.step()
         nn.zero_grad()
 
-    lr_scheduler.step()
+    # lr_scheduler.step()
 
     tm.stop()
 
