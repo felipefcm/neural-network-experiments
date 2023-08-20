@@ -1,14 +1,9 @@
 
-# Neural Network (MNIST handwritten digits)
+# Neural Network experiments
 
 This is a simple project created to better understand how artificial neural networks, work.
+It can use any MNIST-compatible dataset, such as handwritten, fashion, kmnist, etc.
 
-This is heavily inspired by Michael Nielsen's book: [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/).
+The network implementation is inspired by Michael Nielsen's book: [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/).
 
-There's also a PyTorch implementation to solve the same problem.
-
-Requires the MNIST database of handwritten digits at the root of the project:
-- `./train-images-idx3-ubyte`
-- `./train-labels-idx1-ubyte`
-
-They can be downloaded from [here](http://yann.lecun.com/exdb/mnist/).
+There's also a PyTorch implementation, using both a simple NN with linear layers and a convolutional net.
