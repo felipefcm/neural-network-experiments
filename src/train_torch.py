@@ -3,10 +3,13 @@ import timer
 import torch
 
 from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
+
 from networktorch import NeuralNetworkTorch, ConvNeuralNetworkTorch
 import imagedb
 from mnistdataset import MNISTDataset
 
+writer = SummaryWriter()
 tm = timer.Timer()
 
 tm.start('training data loading')
@@ -61,6 +64,7 @@ for epoch in range(epochs):
 
         output = nn(images_batch)
         loss = torch.nn.functional.mse_loss(output, expecteds_batch)
+        writer.add_scalar('Loss/train', loss, epoch)
 
         loss.backward()
         optimiser.step()
@@ -96,4 +100,5 @@ for epoch in range(epochs):
     print(f'Finished epoch #{epoch}: {num_correct}/{len(dataset)} ({rate}%)')
 
 
-graph.draw_cool_graphs([], [], epochs, progress)
+writer.flush()
+# graph.draw_cool_graphs([], [], epochs, progress)

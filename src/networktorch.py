@@ -41,7 +41,7 @@ class ConvNeuralNetworkTorch(nn.Module):
     def forward(self, x):
         # we do some reshaping here simply to avoid making changes to the caller
         # so it continues to work with the fully conected network above
-        x = x.reshape(len(x), 1, 28, 28) / 255
+        x = x.reshape(-1, 1, 28, 28) / 255
 
         conv_output = self.conv(x)
         flat = conv_output.reshape(len(x), -1)
