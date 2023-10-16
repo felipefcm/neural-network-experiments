@@ -43,13 +43,13 @@ class NeuralNetwork:
         delta = self.cost_derivative(
             activations[-1], expected) * activation_derivative(zs[-1])
 
-        weight_gradients[-1] = np.dot(delta, activations[-2].transpose())
+        weight_gradients[-1] = np.dot(delta, activations[-2].T)
         bias_gradients[-1] = delta
 
         for layer in range(2, self.num_layers):
             z = zs[-layer]
             d = activation_derivative(z)
-            delta = np.dot(self.weights[-layer + 1].transpose(), delta) * d
+            delta = np.dot(self.weights[-layer + 1].T, delta) * d
 
             weight_gradients[-layer] = np.dot(
                 delta, activations[-layer - 1].transpose()

@@ -35,7 +35,7 @@ class ConvNeuralNetworkTorch(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(16 * 14 * 14, 10),
-            nn.Sigmoid(),
+            nn.Softmax(dim=1),
         )
 
     def forward(self, x):

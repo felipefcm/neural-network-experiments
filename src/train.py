@@ -48,11 +48,11 @@ wgs = []
 bgs = []
 progress = []
 
-nn = NeuralNetwork([784, 64, 10])
+nn = NeuralNetwork([784, 16, 16, 10])
 
 epochs = 50
-batch_size = 10
-num_tests = 30000
+batch_size = 1
+num_tests = 10000
 
 num_batches = math.ceil(len(training_data) / batch_size)
 
@@ -60,9 +60,9 @@ for epoch in range(epochs):
     for idx in range(num_batches):
         mini_batch = training_data[idx:idx + batch_size]
 
-        wg, bg = nn.adjust_mini_batch(mini_batch, 0.1)
-        wgs.append(graph.sum_delta_gradients(wg))
-        bgs.append(graph.sum_delta_gradients(bg))
+        wg, bg = nn.adjust_mini_batch(mini_batch, 0.001)
+        # wgs.append(graph.sum_delta_gradients(wg))
+        # bgs.append(graph.sum_delta_gradients(bg))
 
     correct = evaluate(training_data[:num_tests])
     progress.append(int(100 * correct / num_tests))
@@ -72,7 +72,8 @@ for epoch in range(epochs):
 
 # -----------------------
 
+num_tests = 60000
 correct = evaluate(training_data[:num_tests])
 print(f'Error rate: {100 * ((num_tests - correct) / num_tests)}%')
 
-graph.draw_cool_graphs(wgs, bgs, epochs, progress)
+# graph.draw_cool_graphs(wgs, bgs, epochs, progress)

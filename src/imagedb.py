@@ -2,8 +2,8 @@ import numpy as np
 
 
 def load_training():
-    images_file = open('./train-images-idx3-ubyte', 'rb')
-    labels_file = open('./train-labels-idx1-ubyte', 'rb')
+    images_file = open('./digits-train-images-idx3-ubyte', 'rb')
+    labels_file = open('./digits-train-labels-idx1-ubyte', 'rb')
 
     images = load_images(images_file)
     labels = load_labels(labels_file)
